@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototipo Completo Automatización Aramark - Dashboard Minimalista</title>
+    <!-- Incluir Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Incluir SheetJS para exportación a Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* Estilo minimalista optimizado: Reducido padding/margin, fuentes más pequeñas, layouts compactos para más info en pantalla */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #FFFFFF;
+            color: #211F20;
+            font-size: 12px; /* Fuente más pequeña para densidad */
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        /* Barra lateral de navegación optimizada */
+        .sidebar {
+            width: 200px; /* Reducido ancho */
+            background-color: #211F20;
+            color: #FFFFFF;
+            padding: 10px; /* Reducido padding */
+            box-sizing: border-box;
+        }
+        .sidebar h1 {
+            font-size: 18px; /* Menor tamaño */
+            margin-bottom: 20px;
+            color: #EB2034;
+            text-align: center;
+            border-bottom: 1px solid #EB2034;
+            padding-bottom: 5px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0; /* Sin margen */
+        }
+        .sidebar li {
+            margin-bottom: 10px; /* Reducido */
+        }
+        .sidebar a {
+            color: #FFFFFF;
+            text-decoration: none;
+            font-size: 14px; /* Menor tamaño */
+            cursor: pointer;
+        }
+        .sidebar a:hover {
+            color: #EB2034;
+        }
+        .sidebar a.active {
+            color: #EB2034;
+            font-weight: bold;
+        }
+        /* Contenido principal optimizado */
+        .main-content {
+            flex: 1;
+            padding: 20px; /* Reducido padding */
+            overflow-y: auto;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px; /* Reducido */
+        }
+        .header h2 {
+            font-size: 22px; /* Menor tamaño */
+            color: #211F20;
+        }
+        /* Métricas con gráficos optimizados */
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Tarjetas más pequeñas */
+            gap: 10px; /* Reducido gap */
+            margin-bottom: 20px; /* Reducido */
+        }
+        .metric-card {
+            background-color: #F5F5F5;
+            padding: 10px; /* Reducido */
+            border-radius: 4px; /* Bordes más pequeños */
+            text-align: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Sombra ligera */
+        }
+        .metric-card h3 {
+            font-size: 12px; /* Menor tamaño */
+            margin-bottom: 5px;
+            color: #211F20;
+        }
+        .metric-card canvas {
+            max-height: 100px; /* Gráficos más pequeños */
+        }
+        /* Tabla general optimizada */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px; /* Reducido */
+            font-size: 12px; /* Fuente menor */
+        }
+        th, td {
+            padding: 6px; /* Reducido padding para más filas visibles */
+            text-align: left;
+            border-bottom: 1px solid #DDD;
+        }
+        th {
+            background-color: #211F20;
+            color: #FFFFFF;
+            cursor: pointer;
+        }
+        th:hover {
+            background-color: #3A3839;
+        }
+        tr:hover {
+            background-color: #F5F5F5;
+        }
+        /* Alertas optimizadas */
+        .alert {
+            background-color: #EB2034;
+            color: #FFFFFF;
+            padding: 8px; /* Reducido */
+            border-radius: 4px;
+            margin-bottom: 10px; /* Reducido */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+        .alert button {
+            background: none;
+            border: none;
+            color: #FFFFFF;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        /* Formularios optimizados */
+        form {
+            display: grid;
+            gap: 10px; /* Reducido */
+            max-width: 500px; /* Compacto */
+        }
+        input, select, button {
+            padding: 6px; /* Reducido */
+            border: 1px solid #DDD;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        button {
+            background-color: #EB2034;
+            color: #FFFFFF;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #C91A2B;
+        }
+        /* Logs optimizados */
+        .logs {
+            background-color: #F5F5F5;
+            padding: 10px; /* Reducido */
+            border-radius: 4px;
+            max-height: 200px; /* Menor altura para más espacio */
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin-bottom: 5px; /* Reducido */
+        }
+        /* Nota sobre datos optimizada */
+        .note {
+            font-style: italic;
+            color: #888;
+            margin-bottom: 10px; /* Reducido */
+            font-size: 10px; /* Muy pequeña */
+        }
+        /* Pantalla de Login optimizada */
+        #login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #211F20;
+        }
+        .login-form {
+            background-color: #FFFFFF;
+            padding: 20px; /* Reducido */
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 250px; /* Compacto */
+        }
+        .login-form img {
+            height: 40px; /* Menor */
+            margin-bottom: 10px;
+        }
+        .login-form input {
+            width: 100%;
+            margin-bottom: 10px; /* Reducido */
+        }
+        .login-form button {
+            width: 100%;
+        }
+        /* Paginación optimizada */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px; /* Reducido */
+        }
+        .pagination button {
+            margin: 0 3px; /* Reducido */
+            padding: 5px 10px; /* Compacto */
+        }
+        /* Botón de exportación */
+        .export-btn {
+            margin-bottom: 10px; /* Reducido */
+        }
+        /* Modal para simulación de email optimizado */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 40px; /* Reducido */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 10px; /* Reducido */
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px; /* Compacto */
+            font-size: 12px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 20px; /* Menor */
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        /* Footer minimalista optimizado */
+        footer {
+            text-align: center;
+            padding: 10px; /* Reducido */
+            font-size: 10px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <!-- Pantalla de Login -->
+    <div id="login-screen">
+        <div class="login-form">
+            <img src="https://logos-world.net/wp-content/uploads/2024/07/Aramark-Logo.jpg" alt="Logo Aramark" style="height: 40px;">
+            <h2 style="color: #211F20;">Iniciar Sesión</h2>
+            <input type="text" placeholder="Usuario">
+            <input type="password" placeholder="Contraseña">
+            <button onclick="login()">Iniciar Sesión</button>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal (oculto inicialmente) -->
+    <div class="container" id="app-container" style="display: none;">
+        <!-- Barra lateral -->
+        <nav class="sidebar">
+            <h1>Automatización de recepción Contratos Centralizados</h1>
+            <ul>
+                <li><a onclick="showSection('dashboard')" class="active">Dashboard</a></li>
+                <li><a onclick="showSection('centros')">Centros de Costo</a></li>
+                <li><a onclick="showSection('guias')">Guías Pendientes</a></li>
+                <li><a onclick="showSection('excepciones')">Excepciones</a></li>
+                <li><a onclick="showSection('reportes')">Reportes</a></li>
+                <li><a onclick="showSection('reglas')">Configuración de Reglas</a></li>
+                <li><a onclick="showSection('monitoreo')">Monitoreo</a></li>
+                <li><a onclick="showSection('notificaciones')">Configuración de Notificaciones</a></li>
+            </ul>
+        </nav>
+        
+        <!-- Contenido principal -->
+        <main class="main-content">
+            <!-- Sección Dashboard -->
+            <section id="dashboard" class="section active">
+                <div class="header">
+                    <h2>Dashboard Principal</h2>
+                    <img src="https://logos-world.net/wp-content/uploads/2024/07/Aramark-Logo.jpg" alt="Logo Aramark" style="height: 50px;">
+                </div>
+                <p class="note">Nota: Toda la información mostrada en este prototipo es datos de muestra ficticios para fines de demostración. En una implementación real, se integraría con datos de Azure y Brand para mostrar información precisa y en tiempo real. La estructura y funcionalidades se alinean con los requerimientos funcionales (RF001-RF010) y técnicos (RT001-RT010) descritos en el documento del proyecto, pero esta es una versión estática/simulada sin conexión a bases de datos o servicios reales.</p>
+                
+                <!-- Métricas con gráficos -->
+                <div class="metrics">
+                    <div class="metric-card">
+                        <h3>Guías Procesadas Hoy</h3>
+                        <canvas id="chart1"></canvas>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Excepciones Activas</h3>
+                        <canvas id="chart2"></canvas>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Eficiencia BOT</h3>
+                        <canvas id="chart3"></canvas>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Tiempo Promedio Procesamiento</h3>
+                        <canvas id="chart4"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Alertas de excepciones -->
+                <div class="alert">
+                    <span>Excepción: Guía #1234 en estado de inventario bloqueado.</span>
+                    <button onclick="alert('Resolviendo excepción (simulado)...')">Resolver</button>
+                    <button onclick="sendEmailAlert('Excepción: Guía #1234 en estado de inventario bloqueado.')">Enviar Alerta por Email</button>
+                </div>
+                <div class="alert">
+                    <span>Excepción: Datos incompletos en Guía #5678.</span>
+                    <button onclick="alert('Resolviendo excepción (simulado)...')">Resolver</button>
+                    <button onclick="sendEmailAlert('Excepción: Datos incompletos en Guía #5678.')">Enviar Alerta por Email</button>
+                </div>
+                
+                <!-- Tabla de guías recientes con CECOS de ejemplo -->
+                <h3>Guías Recientes</h3>
+                <button class="export-btn" onclick="exportTableToExcel('recentes-table', 'Guías_Recientes')">Exportar a Excel</button>
+                <table id="recentes-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0, 'recentes-table')">Guía ID &#x25B4;</th>
+                            <th onclick="sortTable(1, 'recentes-table')">Pedido Relacionado &#x25B4;</th>
+                            <th onclick="sortTable(2, 'recentes-table')">CECOS &#x25B4;</th>
+                            <th onclick="sortTable(3, 'recentes-table')">Estado &#x25B4;</th>
+                            <th onclick="sortTable(4, 'recentes-table')">Timestamp &#x25B4;</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>001</td>
+                            <td>Pedido #A001</td>
+                            <td>55016</td>
+                            <td>A (Activo)</td>
+                            <td>2026-02-26 10:00</td>
+                        </tr>
+                        <tr>
+                            <td>002</td>
+                            <td>Pedido #A002</td>
+                            <td>41640</td>
+                            <td>E (Excepción)</td>
+                            <td>2026-02-26 11:15</td>
+                        </tr>
+                        <tr>
+                            <td>003</td>
+                            <td>Pedido #A003</td>
+                            <td>30227</td>
+                            <td>A (Activo)</td>
+                            <td>2026-02-26 12:00</td>
+                        </tr>
+                        <tr>
+                            <td>004</td>
+                            <td>Pedido #A004</td>
+                            <td>30296</td>
+                            <td>A (Activo)</td>
+                            <td>2026-02-26 12:30</td>
+                        </tr>
+                        <tr>
+                            <td>005</td>
+                            <td>Pedido #A005</td>
+                            <td>32164</td>
+                            <td>E (Excepción)</td>
+                            <td>2026-02-26 13:00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            
+            <!-- Sección Centros de Costo (RF001) -->
+            <section id="centros" class="section">
+                <div class="header">
+                    <h2>Gestión de Centros de Costo</h2>
+                    <img src="https://logos-world.net/wp-content/uploads/2024/07/Aramark-Logo.jpg" alt="Logo Aramark" style="height: 50px;">
+                </div>
+                <p class="note">Esta sección simula la gestión de centros de costo con búsqueda, edición y auditoría. Incluye todos los ejemplos proporcionados.</p>
+                <input type="text" placeholder="Buscar por código o descripción..." oninput="filterTable(this, 'centros-table')">
+                <button class="export-btn" onclick="exportTableToExcel('centros-table', 'Centros_de_Costo')">Exportar a Excel</button>
+                <table id="centros-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0, 'centros-table')">Código &#x25B4;</th>
+                            <th onclick="sortTable(1, 'centros-table')">Descripción &#x25B4;</th>
+                            <th onclick="sortTable(2, 'centros-table')">Atributos &#x25B4;</th>
+                            <th onclick="sortTable(3, 'centros-table')">Agrupadores &#x25B4;</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>55016</td>
+                            <td>BOD CLINICA ALEMANA ASEO</td>
+                            <td>Operacional</td>
+                            <td>Grupo A</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría: Modificado por usuario X en 2026-02-26')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>41640</td>
+                            <td>BOD. CLIN DAVILA ASEO EDIF G,I VESTIDORE</td>
+                            <td>Administrativo</td>
+                            <td>Grupo B</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría: Modificado por usuario Y en 2026-02-25')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>30227</td>
+                            <td>BOD. CAMPAMENTO 5400 ESCONDIDA FOOD</td>
+                            <td>Operacional</td>
+                            <td>Grupo C</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría: Modificado por usuario Z en 2026-02-24')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>30296</td>
+                            <td>BODEGA C. INDISA</td>
+                            <td>Operacional</td>
+                            <td>Grupo A</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32164</td>
+                            <td>BOD.CAMPAMENTO ARAUCO LA COLCHA</td>
+                            <td>Administrativo</td>
+                            <td>Grupo B</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32161</td>
+                            <td>BOD.CAMPAMENTO ARAUCO MARIA LAS CRUCES</td>
+                            <td>Operacional</td>
+                            <td>Grupo C</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32166</td>
+                            <td>BOD.CAMPAMENTO ARAUCO LA CHINITA</td>
+                            <td>Operacional</td>
+                            <td>Grupo A</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32163</td>
+                            <td>BOD.CAMPAMENTO ARAUCO COLCURA</td>
+                            <td>Administrativo</td>
+                            <td>Grupo B</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32162</td>
+                            <td>BOD.CAMPAMENTO ARAUCO SANTA JUANA</td>
+                            <td>Operacional</td>
+                            <td>Grupo C</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32168</td>
+                            <td>BOD.CAMPAMENTO ZORZAL</td>
+                            <td>Operacional</td>
+                            <td>Grupo A</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32176</td>
+                            <td>BOD.CAMPAMENTO ARAUCO COYANCO</td>
+                            <td>Administrativo</td>
+                            <td>Grupo B</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32177</td>
+                            <td>BOD.CAMPAMENTO ARAUCO CANGREJILLO</td>
+                            <td>Operacional</td>
+                            <td>Grupo C</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32169</td>
+                            <td>BOD.CAMPAMENTO ARAUCO TOTORAL</td>
+                            <td>Operacional</td>
+                            <td>Grupo A</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>31322</td>
+                            <td>BOD. CARGILL</td>
+                            <td>Administrativo</td>
+                            <td>Grupo B</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>30950</td>
+                            <td>BOD. PETROQUIM</td>
+                            <td>Operacional</td>
+                            <td>Grupo C</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>31964</td>
+                            <td>BOD. ENAP BIOBIO FOOD</td>
+                            <td>Operacional</td>
+                            <td>Grupo A</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>31612</td>
+                            <td>BOD. BIOFOREST</td>
+                            <td>Administrativo</td>
+                            <td>Grupo B</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>31760</td>
+                            <td>BOD.KIOSKO LOS BRONCES.</td>
+                            <td>Operacional</td>
+                            <td>Grupo C</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>31757</td>
+                            <td>BOD.ANGLO LOS BRONCES FOOD</td>
+                            <td>Operacional</td>
+                            <td>Grupo A</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>31439</td>
+                            <td>BOD. EL TENIENTE COYA</td>
+                            <td>Administrativo</td>
+                            <td>Grupo B</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>31476</td>
+                            <td>BOD. MINERA EL ABRA.</td>
+                            <td>Operacional</td>
+                            <td>Grupo C</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>31753</td>
+                            <td>BOD.CAMPAMENTO VCA-ESCONDIDA FOOD</td>
+                            <td>Operacional</td>
+                            <td>Grupo A</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32216</td>
+                            <td>BOD. WALMART HIPER LIDER 4 ESQUINAS</td>
+                            <td>Administrativo</td>
+                            <td>Grupo B</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32345</td>
+                            <td>BOD. WALMART LIDER COQUIMBO.</td>
+                            <td>Operacional</td>
+                            <td>Grupo C</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32217</td>
+                            <td>BOD.WALMART HIPER LIDER REG. ARICA</td>
+                            <td>Operacional</td>
+                            <td>Grupo A</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32226</td>
+                            <td>BOD.WALMART MAYORISTA SERENA P.DEL MAR</td>
+                            <td>Administrativo</td>
+                            <td>Grupo B</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32223</td>
+                            <td>BOD.WALMART SBA VICUÑA YUNGAY</td>
+                            <td>Operacional</td>
+                            <td>Grupo C</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32211</td>
+                            <td>BOD. WALMART EXPRESS LA SERENA</td>
+                            <td>Operacional</td>
+                            <td>Grupo A</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32219</td>
+                            <td>BOD.WALMART SBA COQUIMBO CLARINES</td>
+                            <td>Administrativo</td>
+                            <td>Grupo B</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                        <tr>
+                            <td>32221</td>
+                            <td>BOD.WALMART SBA BA LAS COMPANIAS</td>
+                            <td>Operacional</td>
+                            <td>Grupo C</td>
+                            <td><button onclick="alert('Editando (simulado)...')">Editar</button> <button onclick="alert('Auditoría...')">Auditoría</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button onclick="alert('Agregando nuevo centro (simulado)...')">Agregar Nuevo</button>
+            </section>
+            
+            <!-- Sección Guías Pendientes (RF002, RF003) - Optimizada con generación dinámica y paginación -->
+            <section id="guias" class="section">
+                <div class="header">
+                    <h2>Guías Pendientes</h2>
+                    <img src="https://logos-world.net/wp-content/uploads/2024/07/Aramark-Logo.jpg" alt="Logo Aramark" style="height: 50px;">
+                </div>
+                <p class="note">Lista de guías pendientes de procesamiento (120 posiciones de muestra generadas dinámicamente para optimización). Cada guía tiene un pedido relacionado. Simula ingesta automática cada hora. Tabla paginada para mejor rendimiento (10 filas por página).</p>
+                <input type="text" id="guias-search" placeholder="Buscar por guía ID o CECOS..." oninput="filterGuiasTable()">
+                <label><input type="checkbox" id="select-all" onclick="selectAll(this)"> Seleccionar todo</label>
+                <button onclick="processAll()">Procesar todo</button>
+                <button class="export-btn" onclick="exportTableToExcel('guias-table', 'Guias_Pendientes')">Exportar a Excel</button>
+                <table id="guias-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" disabled></th> <!-- Placeholder for checkbox header -->
+                            <th onclick="sortTable(1, 'guias-table')">Guía ID &#x25B4;</th>
+                            <th onclick="sortTable(2, 'guias-table')">Pedido Relacionado &#x25B4;</th>
+                            <th onclick="sortTable(3, 'guias-table')">CECOS &#x25B4;</th>
+                            <th onclick="sortTable(4, 'guias-table')">Estado &#x25B4;</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="guias-tbody">
+                        <!-- Filas generadas dinámicamente -->
+                    </tbody>
+                </table>
+                <div class="pagination" id="pagination">
+                    <!-- Botones de paginación generados dinámicamente -->
+                </div>
+            </section>
+            
+            <!-- Sección Excepciones (RF005) -->
+            <section id="excepciones" class="section">
+                <div class="header">
+                    <h2>Gestión de Excepciones</h2>
+                    <img src="https://logos-world.net/wp-content/uploads/2024/07/Aramark-Logo.jpg" alt="Logo Aramark" style="height: 50px;">
+                </div>
+                <p class="note">Alertas y resolución de excepciones. Simulado, con integración de alertas por email (simulada).</p>
+                <div class="alert">
+                    <span>Excepción: Guía #1234 - Inventario bloqueado</span>
+                    <button onclick="this.parentElement.remove(); alert('Resuelta')">Resolver</button>
+                    <button onclick="sendEmailAlert('Excepción: Guía #1234 - Inventario bloqueado')">Enviar Alerta por Email</button>
+                </div>
+                <div class="alert">
+                    <span>Excepción: Datos incompletos en Guía #5678.</span>
+                    <button onclick="this.parentElement.remove(); alert('Resuelta')">Resolver</button>
+                    <button onclick="sendEmailAlert('Excepción: Datos incompletos en Guía #5678.')">Enviar Alerta por Email</button>
+                </div>
+                <button onclick="alert('Analizando tendencias (simulado)...')">Análisis de Tendencias</button>
+            </section>
+            
+            <!-- Sección Reportes (RF008) -->
+            <section id="reportes" class="section">
+                <div class="header">
+                    <h2>Reportes</h2>
+                    <img src="https://logos-world.net/wp-content/uploads/2024/07/Aramark-Logo.jpg" alt="Logo Aramark" style="height: 50px;">
+                </div>
+                <p class="note">Generación de reportes filtrables y exportables. Simulado.</p>
+                <form>
+                    <label>Filtrar por fecha:</label>
+                    <input type="date">
+                    <button type="button" onclick="alert('Generando reporte (simulado)...')">Generar</button>
+                </form>
+                <button class="export-btn" onclick="exportTableToExcel('reportes-table', 'Reportes')">Exportar a Excel</button>
+                <table id="reportes-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0, 'reportes-table')">Tipo &#x25B4;</th>
+                            <th onclick="sortTable(1, 'reportes-table')">Valor &#x25B4;</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Guías Procesadas</td>
+                            <td>450</td>
+                        </tr>
+                        <tr>
+                            <td>Excepciones</td>
+                            <td>15</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            
+            <!-- Sección Configuración de Reglas (RF003) -->
+            <section id="reglas" class="section">
+                <div class="header">
+                    <h2>Configuración de Reglas</h2>
+                    <img src="https://logos-world.net/wp-content/uploads/2024/07/Aramark-Logo.jpg" alt="Logo Aramark" style="height: 50px;">
+                </div>
+                <p class="note">Definir reglas de negocio, como períodos de excepción. Simulado. Ahora se puede configurar por Contrato y por Agrupador.</p>
+                <form>
+                    <label>Regla:</label>
+                    <select>
+                        <option>Vencimiento 48h</option>
+                        <option>Período de Excepción</option>
+                    </select>
+                    <label>Tipo de Aplicación:</label>
+                    <select id="aplicacion-tipo">
+                        <option>Por Contrato</option>
+                        <option>Por Agrupador</option>
+                    </select>
+                    <label>Contrato o Agrupador:</label>
+                    <input type="text" placeholder="ID Contrato o Agrupador">
+                    <label>Fecha Inicio:</label>
+                    <input type="date">
+                    <label>Fecha Fin:</label>
+                    <input type="date">
+                    <button type="button" onclick="alert('Guardando regla (simulado)...')">Guardar</button>
+                </form>
+            </section>
+            
+            <!-- Nueva Sección Configuración de Notificaciones -->
+            <section id="notificaciones" class="section">
+                <div class="header">
+                    <h2>Configuración de Notificaciones</h2>
+                    <img src="https://logos-world.net/wp-content/uploads/2024/07/Aramark-Logo.jpg" alt="Logo Aramark" style="height: 50px;">
+                </div>
+                <p class="note">Configura notificaciones push y alertas automáticas por email. Simulado.</p>
+                <form>
+                    <label>Email para Alertas:</label>
+                    <input type="email" id="email-alert" placeholder="tuemail@ejemplo.com">
+                    <label>Notificaciones Push:</label>
+                    <select id="push-config">
+                        <option>Habilitado</option>
+                        <option>Deshabilitado</option>
+                    </select>
+                    <label>Umbral para Alertas Automáticas (ej. número de excepciones):</label>
+                    <input type="number" id="alert-threshold" value="5">
+                    <button type="button" onclick="saveNotificationConfig()">Guardar Configuración</button>
+                </form>
+            </section>
+            
+            <!-- Sección Monitoreo (RF007, RF006) -->
+            <section id="monitoreo" class="section">
+                <div class="header">
+                    <h2>Monitoreo y Auditoría</h2>
+                    <img src="https://logos-world.net/wp-content/uploads/2024/07/Aramark-Logo.jpg" alt="Logo Aramark" style="height: 50px;">
+                </div>
+                <p class="note">Simulación de logs de Application Insights. Incluye trazabilidad de BOT y procesos.</p>
+                <div class="logs">
+                    <div class="log-entry">[2026-02-26 12:00] Ingesta: Nueva guía #006 procesada.</div>
+                    <div class="log-entry">[2026-02-26 11:45] BOT: Recepción en Brand exitosa para #005.</div>
+                    <div class="log-entry">[2026-02-26 11:30] Error: Excepción en validación - Reintento exitoso.</div>
+                    <div class="log-entry">[2026-02-26 10:00] Sistema: Disponibilidad 99.9%.</div>
+                </div>
+                <button onclick="alert('Actualizando logs (simulado)...')">Refrescar</button>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Modal para simulación de email -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Simulación de Envío de Email</h2>
+            <p id="emailContent"></p>
+            <p>Para: <span id="emailTo"></span></p>
+            <p>De: alerts@aramark.com (simulado)</p>
+            <p>Asunto: Alerta de Excepción Aramark</p>
+            <button onclick="simulateSend()">Enviar (Simulado)</button>
+        </div>
+    </div>
+    
+    <footer>
+        Prototipo Completo Minimalista para Proyecto de Automatización en Azure - Aramark © 2026
+    </footer>
+
+    <script>
+        function login() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+            initCharts(); // Inicializar gráficos después de login
+            triggerAutomaticAlerts(); // Trigger alertas automáticas al login (simulado)
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            event.target.classList.add('active');
+            if (sectionId === 'guias') {
+                generateGuiasTable(); // Generar tabla al mostrar la sección
+            }
+        }
+
+        function filterTable(input, tableId) {
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById(tableId);
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        }
+
+        function selectAll(source) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(checkbox => checkbox.checked = source.checked);
+        }
+
+        function processAll() {
+            const selected = Array.from(document.querySelectorAll('.row-checkbox:checked')).length;
+            alert(`Procesando ${selected} guías seleccionadas (simulado)...`);
+        }
+
+        // Ordenamiento por columnas
+        function sortTable(n, tableId) {
+            const table = document.getElementById(tableId);
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            const isAscending = table.querySelectorAll('th')[n].getAttribute('data-order') === 'asc';
+            rows.sort((a, b) => {
+                let x = a.querySelectorAll('td')[n].innerText.toLowerCase();
+                let y = b.querySelectorAll('td')[n].innerText.toLowerCase();
+                if (!isNaN(x) && !isNaN(y)) {
+                    x = parseFloat(x);
+                    y = parseFloat(y);
+                }
+                if (x < y) return isAscending ? -1 : 1;
+                if (x > y) return isAscending ? 1 : -1;
+                return 0;
+            });
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+            table.querySelectorAll('th')[n].setAttribute('data-order', isAscending ? 'desc' : 'asc');
+            table.querySelectorAll('th')[n].innerHTML = table.querySelectorAll('th')[n].innerHTML.replace(/ \u25B4|\u25BE/g, '') + (isAscending ? ' \u25BE' : ' \u25B4');
+        }
+
+        // Inicializar gráficos con Chart.js
+        function initCharts() {
+            // Gráfico 1: Guías Procesadas Hoy (ej. barra)
+            new Chart(document.getElementById('chart1'), {
+                type: 'bar',
+                data: {
+                    labels: ['Hoy'],
+                    datasets: [{ label: 'Guías', data: [150], backgroundColor: '#EB2034' }]
+                },
+                options: { scales: { y: { beginAtZero: true } } }
+            });
+
+            // Gráfico 2: Excepciones Activas (ej. doughnut)
+            new Chart(document.getElementById('chart2'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Activas', 'Resueltas'],
+                    datasets: [{ data: [5, 95], backgroundColor: ['#EB2034', '#F5F5F5'] }]
+                }
+            });
+
+            // Gráfico 3: Eficiencia BOT (ej. gauge simulada con doughnut)
+            new Chart(document.getElementById('chart3'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Eficiencia'],
+                    datasets: [{ data: [98, 2], backgroundColor: ['#EB2034', '#F5F5F5'] }]
+                },
+                options: { cutout: '70%', plugins: { legend: { display: false } } }
+            });
+
+            // Gráfico 4: Tiempo Promedio Procesamiento (ej. line)
+            new Chart(document.getElementById('chart4'), {
+                type: 'line',
+                data: {
+                    labels: ['Ene', 'Feb'],
+                    datasets: [{ label: 'Tiempo (min)', data: [50, 45], borderColor: '#EB2034' }]
+                },
+                options: { scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        // Exportar tabla a Excel con SheetJS
+        function exportTableToExcel(tableId, filename) {
+            const table = document.getElementById(tableId);
+            const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+            XLSX.writeFile(wb, `${filename}.xlsx`);
+        }
+
+        // Simular envío de alerta por email con modal mejorado
+        function sendEmailAlert(message) {
+            const email = localStorage.getItem('alertEmail') || 'tuemail@ejemplo.com'; // Simular configuración guardada
+            document.getElementById('emailTo').innerText = email;
+            document.getElementById('emailContent').innerText = message;
+            document.getElementById('emailModal').style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById('emailModal').style.display = "none";
+        }
+
+        function simulateSend() {
+            alert('Email enviado (simulado). En real, usaría mailto o API.');
+            closeModal();
+        }
+
+        // Trigger alertas automáticas (simulado, ej. al login o al cargar guías)
+        function triggerAutomaticAlerts() {
+            const threshold = localStorage.getItem('alertThreshold') || 5;
+            const exceptions = 5; // Simulado
+            if (exceptions >= threshold) {
+                sendEmailAlert(`Alerta automática: Número de excepciones (${exceptions}) supera el umbral (${threshold}).`);
+                simulatePushNotification(`Alerta: Excepciones superan umbral (${exceptions}).`);
+            }
+        }
+
+        // Simular notificación push (usando alert para prototipo, en real usaría Notification API)
+        function simulatePushNotification(message) {
+            if (localStorage.getItem('pushConfig') === 'Habilitado') {
+                alert(`Notificación Push: ${message}`);
+            }
+        }
+
+        // Guardar configuración de notificaciones
+        function saveNotificationConfig() {
+            const email = document.getElementById('email-alert').value;
+            const push = document.getElementById('push-config').value;
+            const threshold = document.getElementById('alert-threshold').value;
+            localStorage.setItem('alertEmail', email);
+            localStorage.setItem('pushConfig', push);
+            localStorage.setItem('alertThreshold', threshold);
+            alert('Configuración guardada (simulada en localStorage).');
+        }
+
+        // Optimización para tabla de Guías Pendientes con pedido relacionado
+        let currentPage = 1;
+        const rowsPerPage = 10;
+        let allRows = []; // Almacenar todas las filas generadas
+        let sortColumn = -1;
+        let sortAsc = true;
+
+        function generateGuiasTable() {
+            const cecosList = [
+                55016, 41640, 30227, 30296, 32164, 32161, 32166, 32163, 32162, 32168,
+                32176, 32177, 32169, 31322, 30950, 31964, 31612, 31760, 31757, 31439,
+                31476, 31753, 32216, 32345, 32217, 32226, 32223, 32211, 32219, 32221
+            ];
+            allRows = []; // Reiniciar array de filas
+
+            for (let i = 1; i <= 120; i++) {
+                const guiaId = i.toString().padStart(3, '0');
+                const pedidoId = 'Pedido #P' + guiaId;
+                const cecos = cecosList[(i - 1) % cecosList.length];
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" class="row-checkbox"></td>
+                    <td>${guiaId}</td>
+                    <td>${pedidoId}</td>
+                    <td>${cecos}</td>
+                    <td>Pendiente</td>
+                    <td><button onclick="alert('Procesando manualmente (simulado)...')">Procesar</button></td>
+                `;
+                allRows.push(row);
+            }
+
+            renderGuiasPage(1); // Renderizar primera página
+            triggerAutomaticAlerts(); // Trigger alertas al cargar guías
+        }
+
+        function renderGuiasPage(page) {
+            const tbody = document.getElementById('guias-tbody');
+            tbody.innerHTML = '';
+            const start = (page - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageRows = allRows.slice(start, end);
+            pageRows.forEach(row => tbody.appendChild(row));
+
+            // Paginación
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            const totalPages = Math.ceil(120 / rowsPerPage);
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                btn.onclick = () => {
+                    currentPage = i;
+                    renderGuiasPage(i);
+                };
+                if (i === page) btn.style.backgroundColor = '#EB2034';
+                pagination.appendChild(btn);
+            }
+
+            // Resetear select all
+            document.getElementById('select-all').checked = false;
+        }
+
+        function filterGuiasTable() {
+            const filter = document.getElementById('guias-search').value.toLowerCase();
+            const filteredRows = allRows.filter(row => row.textContent.toLowerCase().includes(filter));
+            allRows = filteredRows; // Actualizar allRows para paginación filtrada
+            renderGuiasPage(1); // Renderizar página 1 de filtrados
+        }
+
+        // Ordenamiento para tabla de Guías Pendientes
+        function sortGuiasTable(column) {
+            sortAsc = (sortColumn === column) ? !sortAsc : true;
+            sortColumn = column;
+            allRows.sort((a, b) => {
+                let x = a.querySelectorAll('td')[column].innerText.toLowerCase();
+                let y = b.querySelectorAll('td')[column].innerText.toLowerCase();
+                if (!isNaN(x) && !isNaN(y)) {
+                    x = parseFloat(x);
+                    y = parseFloat(y);
+                }
+                if (x < y) return sortAsc ? -1 : 1;
+                if (x > y) return sortAsc ? 1 : -1;
+                return 0;
+            });
+            renderGuiasPage(currentPage);
+        }
+    </script>
+</body>
+</html>
